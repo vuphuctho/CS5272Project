@@ -16,21 +16,73 @@
 
 extern __irq void ADC_IRQ_Handler (void); /* ADC  interrupt routine           */
 extern unsigned char AD_in_progress;      /* AD conversion in progress flag  */
-extern short Potentiometer,SlideSensor;
-
+extern short Potentiometer;
+extern OS_MBX mailbox1;
+extern OS_MBX mailbox2;
 
 unsigned char A0,A1; //A0 - Button 3.5, A1 - Button 3.6
 unsigned char B0 = 0,B1 = 0,B2 = 0,B3 = 0,B4 = 0,B5 = 0,B6 = 0,B7 = 0; //B0-B7 represent LED's 0 through 7
-unsigned int counter;
 
+// global variable to access by all tasks
+short d_cycle;														/* duty cycle to control brightness */
+short potentiometer; 											/* potentiometer value */
+short slide_sensor; 											/* slider value */
 
-//Functions to read input
+int counter;
+
+// states to use in the program
+enum PWM_States {LED_OFF, LED_ON} PWM_State;
+
+// id of tasks involved in the program
+OS_TID ADC_Conversion_ID;									/* ID for task 'ADC_Con' */
+OS_TID DC_Computation_ID;									/* ID for task 'DC_Comp' */
+OS_TID PWM_Generator_ID;									/* ID for task 'PWM_Gen' */
+
+//Function to print an unsigned char value on the LCD Display
+void print_uns_char (unsigned char value)
+{	 
+	int flag = 0,i;
+	char c[4];
+	do {
+	   int rem = value%10;
+	   value = value/10;
+	   c[flag] = rem+48;
+	   flag++;
+	}while(value>0);
+	LCD_cls();
+	for(i=flag-1;i>=0;i--) {
+		LCD_putc(c[i]);
+	}
+}
+
+//Function to read input
 void read_buttons()
 {
 	//BUTTON_3_5:
 	A0 = !(GPIO3->DR[0x080]>>5); // Returns 1 when pressed and 0 when released
 	//BUTTON_3_6:
 	A1 = !(GPIO3->DR[0x100]>>6); // Returns 1 when pressed and 0 when released
+}
+
+void print_sth() 
+{
+	//if (counter<100) counter++;
+	LCD_cls();
+	print_uns_char(Potentiometer);
+}
+
+void read_mailboxes() 
+{
+	void *msg1, *msg2;
+	// wait for mailboxes
+	print_sth();
+	os_mbx_wait(&mailbox1, &msg1, 0xffff);
+	os_mbx_wait(&mailbox2, &msg2, 0xffff);
+	// process mailboxes
+	slide_sensor  = * (short *)msg1;
+	potentiometer = * (short *)msg2;
+	// free mailboxes
+	free(msg1); free(msg2);
 }
 
 void start_ADC ( )
@@ -60,50 +112,89 @@ void write_led()
   GPIO7->DR[0x3FC] = mask;
 }
 
-//Function to print an unsigned char value on the LCD Display
-void print_uns_char (unsigned char value)
-{	 
-	int flag = 0,i;
-	char c[4];
-	do {
-	   int rem = value%10;
-	   value = value/10;
-	   c[flag] = rem+48;
-	   flag++;
-	}while(value>0);
-	for(i=flag-1;i>=0;i--)
-		LCD_putc(c[i]);
+int aaa(int state) 
+{
+	int high = 4;
+	int low = 6;
+	switch (state) {
+		case (-1):
+			state = LED_OFF;
+			break;
+		case LED_OFF:
+			if (counter < high) {
+				counter++;
+			} else {
+				B0 = 0;
+				counter = 0;
+				state = LED_ON;
+			}
+			break;
+		case LED_ON:
+			if (counter <low) {
+					counter++;
+			} else {
+				B0 = 1;
+				counter = 0;
+				state = LED_OFF;
+			}
+			break;
+		default:
+			state = -1;
+	}
+	print_uns_char(counter);
+	return state;
 }
 
+/*----------------------------------------------------------------------------
+ *				Task 3 'PWM_Gen':	Generate PWM 	 
+ ----------------------------------------------------------------------------*/
 
-void write_LCD() 
-{
-	LCD_cls();
-	//LCD_putc(SlideSensor);
-	LCD_puts("SPEED: ");
-	print_uns_char(SlideSensor);
-	LCD_gotoxy(1,2);
-	LCD_puts("LIGHT: ");
-	print_uns_char(Potentiometer);
-	LCD_cur_off ();
+__task void PWM_Gen(void) {
+	int state = -1;
+	const unsigned int period = 100;
+	os_itv_set(period);	
+	while(1){ 
+		state = aaa(state);
+		write_led();
+		os_itv_wait();
+	}
+}
+
+/*----------------------------------------------------------------------------
+ *				Task 2 'DC_Comp' : Compute duty cycle to control brightness of LEDs
+ ----------------------------------------------------------------------------*/
+__task void DC_Comp(void){
+	/*
+	const unsigned int period = 100;
+	os_itv_set(period);	
+	while(1){ 
+		os_itv_wait();*/
+		read_mailboxes();
+		// compute the duty cycle and save value to D_Cycle
+		if (d_cycle!=10 * potentiometer/50) {
+			d_cycle = 10 * potentiometer/50;
+		}
+		// possible: call task 3 from this point
+		//print_sth();
+	//}
+	os_tsk_delete_self();
 }
 
 /*----------------------------------------------------------------------------
  *        Task 1 'ADC_Con': ADC Conversion
  *---------------------------------------------------------------------------*/
 __task void ADC_Con(void){
-  // timing
 	const unsigned int period = 100;
 	os_itv_set(period);	
-		for(;;){ 
+	for(;;){ 
 		os_itv_wait();
 		/* Do actions below */
 		start_ADC();
-		write_LCD();
+		// os_tsk_create(DC_Comp, 0);
 		}
 }	 // End ADC_Con(void)
 
-OS_TID Slider_controller_id;
+
 
 
 
@@ -156,12 +247,11 @@ __task void init (void) {
   LCD_init(); //Initialize LCD
   LCD_cur_off(); //Remove LCD cursor
   LCD_cls(); //Clearing LCD screen
-
-	//Launch the task in the following manner
-  //taskname_id = os_tsk_create (State_Machine_Name, 0);
-	counter=0;
-  Slider_controller_id = os_tsk_create(ADC_Con,0);
-  
+ 
+  // create instance of tasks 
+  // ADC_Conversion_ID = os_tsk_create(ADC_Con, 0);    
+	PWM_Generator_ID = os_tsk_create(PWM_Gen, 0);
+	
   os_tsk_delete_self ();
 }
 
