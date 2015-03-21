@@ -49,7 +49,6 @@ void print_uns_char (unsigned char value)
 	   c[flag] = rem+48;
 	   flag++;
 	}while(value>0);
-	LCD_cls();
 	for(i=flag-1;i>=0;i--) {
 		LCD_putc(c[i]);
 	}
@@ -68,6 +67,8 @@ void print_sth()
 {
 	//if (counter<100) counter++;
 	LCD_cls();
+	print_uns_char(potentiometer);
+	LCD_gotoxy(1, 2);
 	print_uns_char(d_cycle);
 }
 
@@ -75,12 +76,11 @@ void read_mailboxes()
 {
 	void *msg1, *msg2;
 	// wait for mailboxes
-	print_sth();
 	os_mbx_wait(&mailbox1, &msg1, 0xffff);
 	os_mbx_wait(&mailbox2, &msg2, 0xffff);
 	// process mailboxes
-	slide_sensor  = * (short *)msg1;
-	potentiometer = * (short *)msg2;
+	potentiometer = * (short *)msg1;
+	slide_sensor  = * (short *)msg2;
 	// free mailboxes
 	free(msg1); free(msg2);
 }
@@ -112,7 +112,7 @@ void write_led()
   GPIO7->DR[0x3FC] = mask;
 }
 
-int aaa(int state) 
+int PWM_StMch(int state) 
 {
 	int high = 20 * d_cycle/100;
 	int low = 20 - high;
@@ -153,7 +153,7 @@ __task void PWM_Gen(void) {
 	const unsigned int period = 100;
 	os_itv_set(period);	
 	while(1){ 
-		state = aaa(state);
+		state = PWM_StMch(state);
 		write_led();
 		os_itv_wait();
 	}
@@ -168,9 +168,9 @@ __task void DC_Comp(void){
 	os_itv_set(period);	
 	while(1){ 
 		os_itv_wait();*/
-		// read_mailboxes();
+		read_mailboxes();
 		// compute the duty cycle and save value to D_Cycle
-		d_cycle = Potentiometer/200 * 20;
+		d_cycle = potentiometer/200 * 20;
 		print_sth();
 	//}
 	os_tsk_delete_self();
