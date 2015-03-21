@@ -164,9 +164,11 @@ __task void PWM_Gen(void) {
  *				Task 2 'DC_Comp' : Compute duty cycle to control brightness of LEDs
  ----------------------------------------------------------------------------*/
 __task void DC_Comp(void){
+	int c = potentiometer/256;
 	read_mailboxes();
 	write_LCD();
 	// compute the duty cycle and save value to D_Cycle
+	// d_cycle = (potentiometer - c * 256)/50 * 20;
 	d_cycle = potentiometer/200 * 20;
 	os_tsk_delete_self();
 }
