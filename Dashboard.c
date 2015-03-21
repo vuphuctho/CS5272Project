@@ -68,7 +68,7 @@ void print_sth()
 {
 	//if (counter<100) counter++;
 	LCD_cls();
-	print_uns_char(Potentiometer);
+	print_uns_char(d_cycle);
 }
 
 void read_mailboxes() 
@@ -114,8 +114,8 @@ void write_led()
 
 int aaa(int state) 
 {
-	int high = 4;
-	int low = 6;
+	int high = 20 * d_cycle/100;
+	int low = 20 - high;
 	switch (state) {
 		case (-1):
 			state = LED_OFF;
@@ -141,7 +141,6 @@ int aaa(int state)
 		default:
 			state = -1;
 	}
-	print_uns_char(counter);
 	return state;
 }
 
@@ -169,13 +168,10 @@ __task void DC_Comp(void){
 	os_itv_set(period);	
 	while(1){ 
 		os_itv_wait();*/
-		read_mailboxes();
+		// read_mailboxes();
 		// compute the duty cycle and save value to D_Cycle
-		if (d_cycle!=10 * potentiometer/50) {
-			d_cycle = 10 * potentiometer/50;
-		}
-		// possible: call task 3 from this point
-		//print_sth();
+		d_cycle = Potentiometer/200 * 20;
+		print_sth();
 	//}
 	os_tsk_delete_self();
 }
@@ -190,7 +186,7 @@ __task void ADC_Con(void){
 		os_itv_wait();
 		/* Do actions below */
 		start_ADC();
-		// os_tsk_create(DC_Comp, 0);
+		DC_Computation_ID = os_tsk_create(DC_Comp, 0);
 		}
 }	 // End ADC_Con(void)
 
@@ -249,7 +245,7 @@ __task void init (void) {
   LCD_cls(); //Clearing LCD screen
  
   // create instance of tasks 
-  // ADC_Conversion_ID = os_tsk_create(ADC_Con, 0);    
+  ADC_Conversion_ID = os_tsk_create(ADC_Con, 0);    
 	PWM_Generator_ID = os_tsk_create(PWM_Gen, 0);
 	
   os_tsk_delete_self ();
