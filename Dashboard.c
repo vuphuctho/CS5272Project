@@ -63,15 +63,6 @@ void read_buttons()
 	A1 = !(GPIO3->DR[0x100]>>6); // Returns 1 when pressed and 0 when released
 }
 
-void print_sth() 
-{
-	//if (counter<100) counter++;
-	LCD_cls();
-	print_uns_char(potentiometer);
-	LCD_gotoxy(1, 2);
-	print_uns_char(d_cycle);
-}
-
 void read_mailboxes() 
 {
 	void *msg1, *msg2;
@@ -110,6 +101,16 @@ void write_led()
   mask |= (B7<<7);
 
   GPIO7->DR[0x3FC] = mask;
+}
+
+//Function to write to LCD
+void write_LCD() {
+	LCD_cls();
+	LCD_puts("SPEED ");
+	print_uns_char(slide_sensor);
+	LCD_gotoxy(1,2);
+	LCD_puts("LIGHT ");
+	print_uns_char(potentiometer);
 }
 
 int PWM_StMch(int state) 
@@ -163,16 +164,10 @@ __task void PWM_Gen(void) {
  *				Task 2 'DC_Comp' : Compute duty cycle to control brightness of LEDs
  ----------------------------------------------------------------------------*/
 __task void DC_Comp(void){
-	/*
-	const unsigned int period = 100;
-	os_itv_set(period);	
-	while(1){ 
-		os_itv_wait();*/
-		read_mailboxes();
-		// compute the duty cycle and save value to D_Cycle
-		d_cycle = potentiometer/200 * 20;
-		print_sth();
-	//}
+	read_mailboxes();
+	write_LCD();
+	// compute the duty cycle and save value to D_Cycle
+	d_cycle = potentiometer/200 * 20;
 	os_tsk_delete_self();
 }
 
