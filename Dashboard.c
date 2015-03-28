@@ -36,8 +36,9 @@ enum PWM_States {LED_OFF, LED_ON} PWM_State;
 // id of tasks involved in the program
 OS_TID ADC_Conversion_ID;									/* ID for task 'ADC_Con' */
 OS_TID DC_Computation_ID;									/* ID for task 'DC_Comp' */
-OS_TID PWM_Generator_ID;									/* ID for task 'PWM_Gen' */
-
+OS_TID PWM_Generator_ID;									/* ID for task 'PWM_Gen'*/
+OS_TID IL_Controller_ID;									/* ID for task 'IL_Controller' (Internal Light) */
+	
 //Function to print an unsigned char value on the LCD Display
 void print_uns_char (unsigned char value)
 {	 
@@ -119,22 +120,23 @@ int PWM_StMch(int state)
 	int low = 20 - high;
 	switch (state) {
 		case (-1):
-			state = LED_OFF;
+			B0 = 1;
+			state = LED_ON;
 			break;
 		case LED_OFF:
-			if (counter < high) {
+			if (counter < low) {
 				counter++;
 			} else {
-				B0 = 0;
+				B0 = 1;
 				counter = 0;
 				state = LED_ON;
 			}
 			break;
 		case LED_ON:
-			if (counter <low) {
+			if (counter <high) {
 					counter++;
 			} else {
-				B0 = 1;
+				B0 = 0;
 				counter = 0;
 				state = LED_OFF;
 			}
