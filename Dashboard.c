@@ -31,7 +31,7 @@ short slide_sensor; 											/* slider value */
 int counter;
 
 // states to use in the program
-enum PWM_States {LED_OFF, LED_ON} PWM_State;
+enum PWM_States {LED_OFF, LED_ON} PWM_State;	/* states for PWM */
 
 // id of tasks involved in the program
 OS_TID ADC_Conversion_ID;									/* ID for task 'ADC_Con' */
