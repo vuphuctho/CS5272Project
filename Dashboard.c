@@ -33,12 +33,31 @@ int counter;
 // states to use in the program
 enum PWM_States {LED_OFF, LED_ON} PWM_State;	/* states for PWM */
 
+// Internal Light Controller
+int int_light_counter;
+int int_light_dimmer;
+int int_light_brightness;
+int int_light_counter_max = 60;
+int ambient_light_threshold = 128;
+// states used in the internal light controller
+enum INT_LIGHT_States {INT_LIGHT_OFF, INT_LIGHT_ON, INT_LIGHT_DIMMING_OFF, INT_LIGHT_DIMMING_ON} INT_LIGHT_State;
+
+// states used for engine
+enum ENGINE_States {ENGINE_OFF, ENGINE_ON} ENGINE_State;
+int engine_state = ENGINE_OFF;
+
+// states used for door
+enum DOOR_States {DOOR_OPEN, DOOR_CLOSE} DOOR_State;
+int door_state = DOOR_CLOSE;
+
 // id of tasks involved in the program
 OS_TID ADC_Conversion_ID;									/* ID for task 'ADC_Con' */
 OS_TID DC_Computation_ID;									/* ID for task 'DC_Comp' */
-OS_TID PWM_Generator_ID;									/* ID for task 'PWM_Gen'*/
-OS_TID IL_Controller_ID;									/* ID for task 'IL_Controller' (Internal Light) */
-	
+OS_TID PWM_Generator_ID;									/* ID for task 'PWM_Gen' */
+OS_TID INT_LIGHT_Controller_ID;						/* ID for task 'INT_LIGHT_Ctrl' */
+OS_TID ENGINE_Controller_ID;							/* ID for task 'ENGINE_Ctrl' */
+OS_TID DOOR_Controller_ID;								/* ID for task 'DOOR_Ctrl' */
+
 //Function to print an unsigned char value on the LCD Display
 void print_uns_char (unsigned char value)
 {	 
@@ -107,11 +126,25 @@ void write_led()
 //Function to write to LCD
 void write_LCD() {
 	LCD_cls();
-	LCD_puts("SPEED ");
+	LCD_puts("S:");
 	print_uns_char(slide_sensor);
 	LCD_gotoxy(1,2);
-	LCD_puts("LIGHT ");
+	LCD_puts("L:");
 	print_uns_char(potentiometer);
+	LCD_gotoxy(7,1);
+	LCD_puts("E:");
+	if(engine_state == ENGINE_ON) {
+		LCD_puts("ON");
+	} else {
+		LCD_puts("OFF");
+	}
+	LCD_gotoxy(7,2);
+	LCD_puts("D:");
+	if(door_state == DOOR_OPEN) {
+		LCD_puts("OPEN");
+	} else {
+		LCD_puts("CLOSED");
+	}
 }
 
 int PWM_StMch(int state) 
@@ -145,6 +178,148 @@ int PWM_StMch(int state)
 			state = -1;
 	}
 	return state;
+}
+
+int INT_LIGHT_StMch(int state) 
+{
+	switch (state) {
+		case (-1):
+			state = INT_LIGHT_OFF;
+			break;
+		case INT_LIGHT_OFF:
+			if(A0 && (potentiometer > ambient_light_threshold)) {
+					int_light_counter = 0;
+					int_light_dimmer = 0;
+					state = INT_LIGHT_ON;
+					B3 = 1;B4 = 1;B5 = 1;
+			} else {
+				if(int_light_counter < int_light_counter_max) {
+					int_light_counter++;
+				} else {
+					int_light_counter = 0;
+				}
+			}
+			break;
+		case INT_LIGHT_ON:
+			// Engine Start
+			if (A1) {
+					int_light_counter = 0;
+					int_light_dimmer = 0;
+					state = INT_LIGHT_OFF;
+					B3 = 0;B4 = 0;B5 = 0;
+			} else if(!A0) {
+				if(int_light_dimmer < 100) { //Wait for (100*100ms=)10 seconds
+					int_light_dimmer++;
+					int_light_counter = 0;
+					state = INT_LIGHT_ON;
+					B3 = 1;B4 = 1;B5 = 1;
+				} else {
+					int_light_counter = 0;
+					int_light_dimmer = 0;
+					int_light_brightness = 10;
+					state = INT_LIGHT_DIMMING_OFF;
+					B3 = 1;B4 = 1;B5 = 1;
+				}
+			}	else if(A0) {
+				if(int_light_counter < 200) { //Wait for (200*100ms=)20 seconds
+					int_light_counter++;
+					int_light_dimmer = 0;
+					state = INT_LIGHT_ON;
+					B3 = 1;B4 = 1;B5 = 1;
+				} else {
+					int_light_counter = 0;
+					int_light_dimmer = 0;
+					state = INT_LIGHT_OFF;
+					B3 = 0;B4 = 0;B5 = 0;
+				}
+			} 
+			break;
+			case INT_LIGHT_DIMMING_OFF:
+			if (A1) {
+					int_light_counter = 0;
+					int_light_dimmer = 0;
+					state = INT_LIGHT_OFF;
+					B3 = 0;B4 = 0;B5 = 0;
+			} else if(!A0) {
+					if(int_light_brightness > 1) {
+						int_light_brightness--;
+						state = INT_LIGHT_DIMMING_OFF;
+						B3 = 1;B4 = 1;B5 = 1;
+					} else {
+						int_light_counter = 0;
+						int_light_dimmer = 0;
+						state = INT_LIGHT_OFF;
+						B3 = 0;B4 = 0;B5 = 0;
+					}
+			} else if(A0) {
+					int_light_counter = 0;
+					int_light_dimmer = 0;
+					state = INT_LIGHT_ON;
+					B3 = 1;B4 = 1;B5 = 1;
+			}
+			break;
+		default:
+			state = -1;
+	}
+	return state;
+}
+
+/*----------------------------------------------------------------------------
+ *				Task 7 'ALARM_Ctrl':	Controls alarm of the Car 	 
+ ----------------------------------------------------------------------------*/
+
+/*----------------------------------------------------------------------------
+ *				Task 6 'INT_LIGHT_Ctrl':	Controls internal light of the Car 	 
+ ----------------------------------------------------------------------------*/
+
+__task void INT_LIGHT_Ctrl(void) {
+	int state = -1;
+	const unsigned int period = 100;
+	os_itv_set(period);	
+	while(1){
+		read_buttons();		
+		state = INT_LIGHT_StMch(state);
+		write_led();
+		os_itv_wait();
+	}
+}
+
+/*----------------------------------------------------------------------------
+ *				Task 5 'DOOR_Ctrl':	Controls Door	 
+ ----------------------------------------------------------------------------*/
+
+__task void DOOR_Ctrl(void) {
+	const unsigned int period = 200;
+	os_itv_set(period);	
+	while(1){
+		read_buttons();
+		if(A0 && door_state == DOOR_OPEN) {
+			door_state = DOOR_CLOSE;
+		} else if(A0 && door_state == DOOR_CLOSE) {
+			door_state = DOOR_OPEN;
+		}
+		write_led();
+		os_itv_wait();
+	}
+}
+
+/*----------------------------------------------------------------------------
+ *				Task 4 'ENGINE_Ctrl':	Controls Engine	 
+ ----------------------------------------------------------------------------*/
+
+__task void ENGINE_Ctrl(void) {
+	const unsigned int period = 200;
+	os_itv_set(period);	
+	while(1){
+		read_buttons();
+		if(A1 && engine_state == ENGINE_OFF) {
+				engine_state = ENGINE_ON;
+		} else if(A1 && engine_state == ENGINE_ON) {
+				engine_state = ENGINE_OFF;
+		}
+		write_led();
+		os_itv_wait();
+	}
 }
 
 /*----------------------------------------------------------------------------
@@ -246,6 +421,9 @@ __task void init (void) {
   // create instance of tasks 
   ADC_Conversion_ID = os_tsk_create(ADC_Con, 0);    
 	PWM_Generator_ID = os_tsk_create(PWM_Gen, 0);
+	INT_LIGHT_Controller_ID = os_tsk_create(INT_LIGHT_Ctrl, 0);
+	ENGINE_Controller_ID = os_tsk_create(ENGINE_Ctrl, 0);
+	DOOR_Controller_ID = os_tsk_create(DOOR_Ctrl, 0);
 	
   os_tsk_delete_self ();
 }
