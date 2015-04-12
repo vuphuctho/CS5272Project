@@ -28,7 +28,7 @@ unsigned char B0 = 0,B1 = 0,B2 = 0,B3 = 0,B4 = 0,B5 = 0,B6 = 0,B7 = 0; //B0-B7 r
 short d_cycle;														/* duty cycle to control brightness */
 short potentiometer; 											/* potentiometer value */
 short slide_sensor; 											/* slider value */
-int ir_sensor;
+short force_sensor;
 
 int counter;
 
@@ -40,7 +40,7 @@ int int_light_counter;
 int int_light_dimmer;
 int int_light_brightness;
 int int_light_counter_max = 60;
-int ambient_light_threshold = 128;
+int ambient_light_threshold = 512;
 int int_light_door_reset = 0;
 // states used in the internal light controller
 enum INT_LIGHT_States {INT_LIGHT_OFF, INT_LIGHT_ON, INT_LIGHT_DIMMING_OFF, INT_LIGHT_DIMMING_ON} INT_LIGHT_State;
@@ -58,17 +58,28 @@ int engine_state = ENGINE_OFF;
 enum DOOR_States {DOOR_OPEN, DOOR_CLOSE} DOOR_State;
 int door_state = DOOR_CLOSE;
 
+// states used for collision
+enum AIRBAG_States {AIRBAG_ON, AIRBAG_OFF} AIRBAG_State;
+int collision_display_counter;
+int collision_threshold = 300;
+int collision_reset = 0;
+
 // id of tasks involved in the program
 OS_TID ADC_Conversion_ID;									/* ID for task 'ADC_Con' */
 OS_TID DC_Computation_ID;									/* ID for task 'DC_Comp' */
 OS_TID PWM_Generator_ID;									/* ID for task 'PWM_Gen' */
 OS_TID INT_LIGHT_Controller_ID;						/* ID for task 'INT_LIGHT_Ctrl' */
 OS_TID ALARM_Controller_ID;								/* ID for task 'ALARM_Ctrl' */
+OS_TID COLLISION_Controller_ID;						/* ID for task 'COLLISION_Ctrl' */
+
 OS_TID ENGINE_Controller_ID;							/* ID for task 'ENGINE_Ctrl' */
 OS_TID DOOR_Controller_ID;								/* ID for task 'DOOR_Ctrl' */
 
+// Mutex
+OS_MUT LCD_Mutex;
+
 //Function to print an unsigned char value on the LCD Display
-void print_uns_char (unsigned char value)
+void print_uns_char (short value)
 {	 
 	int flag = 0,i;
 	char c[4];
@@ -102,7 +113,7 @@ void read_mailboxes()
 	// process mailboxes
 	potentiometer = * (short *)msg1;
 	slide_sensor  = * (short *)msg2;
-	ir_sensor  = * (int *)msg3;
+	force_sensor  = * (short *)msg3;
 	// free mailboxes
 	free(msg1); free(msg2); free(msg3);
 }
@@ -136,26 +147,44 @@ void write_led()
 
 //Function to write to LCD
 void write_LCD() {
+	os_mut_wait (&LCD_Mutex, 1000);
 	LCD_cls();
 	LCD_puts("S:");
 	print_uns_char(slide_sensor);
 	LCD_gotoxy(1,2);
 	LCD_puts("L:");
 	print_uns_char(potentiometer);
-	LCD_gotoxy(7,1);
+	LCD_gotoxy(8,1);
 	LCD_puts("E:");
 	if(engine_state == ENGINE_ON) {
 		LCD_puts("ON");
 	} else {
 		LCD_puts("OFF");
 	}
-	LCD_gotoxy(7,2);
+	LCD_gotoxy(8,2);
 	LCD_puts("D:");
 	if(door_state == DOOR_OPEN) {
 		LCD_puts("OPEN");
 	} else {
 		LCD_puts("CLOSED");
 	}
+	os_mut_release (&LCD_Mutex);
+}
+
+//Function to write collision to LCD
+void write_collision_LCD() {
+	int timer = 0;
+	os_mut_wait (&LCD_Mutex, 1000);
+	LCD_cls();
+	LCD_puts("Collision...");
+	LCD_gotoxy(1,2);
+	LCD_puts("Impact:");
+	print_uns_char(force_sensor);
+	while(timer < 100) {
+		timer++;
+	}
+	write_LCD();
+	os_mut_release (&LCD_Mutex);
 }
 
 int PWM_StMch(int state) 
@@ -320,6 +349,49 @@ int ALARM_StMch(int state)
 			state = -1;
 	}
 	return state;
+}
+
+/*----------------------------------------------------------------------------
+ *				Task 8 'COLLISION_Ctrl':	Controls collision of the Car 	 
+ ----------------------------------------------------------------------------*/
+__task void COLLISION_Ctrl(void) {
+	int state = -1;
+	const unsigned int period = 100;
+	os_itv_set(period);	
+	while(1){
+		switch (state) {
+		case (-1):
+			state = AIRBAG_OFF;
+			break;
+		case AIRBAG_OFF:
+			if(collision_reset == 0 && force_sensor > collision_threshold) {
+				state = AIRBAG_ON;
+				collision_reset = 1;
+			} else {
+				state = AIRBAG_OFF;
+				B3 = 0;
+			}
+			break;
+		case AIRBAG_ON:
+			if(collision_reset == 1) {
+				state = AIRBAG_ON;
+				collision_reset = 0;
+				B3 = 1;
+				write_led();
+				os_mut_init (&LCD_Mutex);
+				write_collision_LCD();
+			} else {
+				state = AIRBAG_OFF;
+				collision_reset = 1;
+				B3 = 0;
+			}
+			break;
+		default:
+			state = -1;
+		}
+		write_led();
+		os_itv_wait();
+	}
 }
 
 /*----------------------------------------------------------------------------
@@ -490,12 +562,13 @@ __task void init (void) {
   LCD_cls(); //Clearing LCD screen
  
   // create instance of tasks 
-  ADC_Conversion_ID = os_tsk_create(ADC_Con, 0);    
-	PWM_Generator_ID = os_tsk_create(PWM_Gen, 0);
-	INT_LIGHT_Controller_ID = os_tsk_create(INT_LIGHT_Ctrl, 0);
-	ALARM_Controller_ID = os_tsk_create(ALARM_Ctrl, 0);
-	ENGINE_Controller_ID = os_tsk_create(ENGINE_Ctrl, 0);
-	DOOR_Controller_ID = os_tsk_create(DOOR_Ctrl, 0);
+  ADC_Conversion_ID = os_tsk_create(ADC_Con, 1);    
+	PWM_Generator_ID = os_tsk_create(PWM_Gen, 1);
+	INT_LIGHT_Controller_ID = os_tsk_create(INT_LIGHT_Ctrl, 3);
+	ALARM_Controller_ID = os_tsk_create(ALARM_Ctrl, 2);
+	ENGINE_Controller_ID = os_tsk_create(ENGINE_Ctrl, 2);
+	COLLISION_Controller_ID = os_tsk_create(COLLISION_Ctrl, 1);
+	DOOR_Controller_ID = os_tsk_create(DOOR_Ctrl, 2);
 	
   os_tsk_delete_self ();
 }

@@ -12,15 +12,13 @@
 #include <RTL.h>
 
 
-short Potentiometer,SlideSensor;
-int IRSensor;
-
+short Potentiometer,SlideSensor,ForceSensor;
 
 unsigned char AD_in_progress;           /* AD conversion in progress flag     */
 
 os_mbx_declare(mailbox1, 20);						/* Mailbox containing Potentiometer value	*/
 os_mbx_declare(mailbox2, 20);						/* Mailbox containing SlideSensor value	*/
-os_mbx_declare(mailbox3, 20);	
+os_mbx_declare(mailbox3, 20);						/* Mailbox containing ForceSensor value	*/
 
 __irq void ADC_IRQ_Handler (void) {     /* AD converter interrupt routine     */
 	void *msg1;
@@ -34,9 +32,9 @@ __irq void ADC_IRQ_Handler (void) {     /* AD converter interrupt routine     */
 	os_mbx_init(&mailbox2, sizeof(mailbox2));
 	msg2 = &SlideSensor;
 	os_mbx_send(&mailbox2, msg2, 0xffff);
-	IRSensor = ADC->DR2 & 0x03FF;    /* AD value for global usage (10 bit) */	
+	ForceSensor = ADC->DR2 & 0x03FF;    /* AD value for global usage (10 bit) */	
 	os_mbx_init(&mailbox3, sizeof(mailbox3));
-	msg3 = &IRSensor;	
+	msg3 = &ForceSensor;	
 	os_mbx_send(&mailbox3, msg3, 0xffff);
 	ADC->CR &= 0xFFFE;                    /* Clear STR bit (Start Conversion)   */
   ADC->CR &= 0x7FFF;                    /* Clear End of Conversion flag       */
