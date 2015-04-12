@@ -19,6 +19,7 @@ extern unsigned char AD_in_progress;      /* AD conversion in progress flag  */
 extern short Potentiometer;
 extern OS_MBX mailbox1;
 extern OS_MBX mailbox2;
+extern OS_MBX mailbox3;
 
 unsigned char A0,A1; //A0 - Button 3.5, A1 - Button 3.6
 unsigned char B0 = 0,B1 = 0,B2 = 0,B3 = 0,B4 = 0,B5 = 0,B6 = 0,B7 = 0; //B0-B7 represent LED's 0 through 7
@@ -27,6 +28,7 @@ unsigned char B0 = 0,B1 = 0,B2 = 0,B3 = 0,B4 = 0,B5 = 0,B6 = 0,B7 = 0; //B0-B7 r
 short d_cycle;														/* duty cycle to control brightness */
 short potentiometer; 											/* potentiometer value */
 short slide_sensor; 											/* slider value */
+int ir_sensor;
 
 int counter;
 
@@ -39,8 +41,14 @@ int int_light_dimmer;
 int int_light_brightness;
 int int_light_counter_max = 60;
 int ambient_light_threshold = 128;
+int int_light_door_reset = 0;
 // states used in the internal light controller
 enum INT_LIGHT_States {INT_LIGHT_OFF, INT_LIGHT_ON, INT_LIGHT_DIMMING_OFF, INT_LIGHT_DIMMING_ON} INT_LIGHT_State;
+
+// Alarm Controller
+int alarm_counter;
+enum ALARM_States {ALARM_ON, ALARM_OFF} ALARM_State;
+
 
 // states used for engine
 enum ENGINE_States {ENGINE_OFF, ENGINE_ON} ENGINE_State;
@@ -55,6 +63,7 @@ OS_TID ADC_Conversion_ID;									/* ID for task 'ADC_Con' */
 OS_TID DC_Computation_ID;									/* ID for task 'DC_Comp' */
 OS_TID PWM_Generator_ID;									/* ID for task 'PWM_Gen' */
 OS_TID INT_LIGHT_Controller_ID;						/* ID for task 'INT_LIGHT_Ctrl' */
+OS_TID ALARM_Controller_ID;								/* ID for task 'ALARM_Ctrl' */
 OS_TID ENGINE_Controller_ID;							/* ID for task 'ENGINE_Ctrl' */
 OS_TID DOOR_Controller_ID;								/* ID for task 'DOOR_Ctrl' */
 
@@ -85,15 +94,17 @@ void read_buttons()
 
 void read_mailboxes() 
 {
-	void *msg1, *msg2;
+	void *msg1, *msg2, *msg3;
 	// wait for mailboxes
 	os_mbx_wait(&mailbox1, &msg1, 0xffff);
 	os_mbx_wait(&mailbox2, &msg2, 0xffff);
+	os_mbx_wait(&mailbox3, &msg3, 0xffff);
 	// process mailboxes
 	potentiometer = * (short *)msg1;
 	slide_sensor  = * (short *)msg2;
+	ir_sensor  = * (int *)msg3;
 	// free mailboxes
-	free(msg1); free(msg2);
+	free(msg1); free(msg2); free(msg3);
 }
 
 void start_ADC ( )
@@ -187,11 +198,18 @@ int INT_LIGHT_StMch(int state)
 			state = INT_LIGHT_OFF;
 			break;
 		case INT_LIGHT_OFF:
-			if(A0 && (potentiometer > ambient_light_threshold)) {
+			if(engine_state == ENGINE_OFF && door_state == DOOR_OPEN && int_light_door_reset == 0) {
+				if(potentiometer > ambient_light_threshold) {
+						int_light_counter = 0;
+						int_light_dimmer = 0;
+						state = INT_LIGHT_ON;
+						B1 = 1;
+				} else {
 					int_light_counter = 0;
-					int_light_dimmer = 0;
-					state = INT_LIGHT_ON;
-					B3 = 1;B4 = 1;B5 = 1;
+						int_light_dimmer = 0;
+						state = INT_LIGHT_OFF;
+						B1 = 0;
+				}
 			} else {
 				if(int_light_counter < int_light_counter_max) {
 					int_light_counter++;
@@ -202,61 +220,101 @@ int INT_LIGHT_StMch(int state)
 			break;
 		case INT_LIGHT_ON:
 			// Engine Start
-			if (A1) {
+			if (engine_state == ENGINE_ON) {
 					int_light_counter = 0;
 					int_light_dimmer = 0;
 					state = INT_LIGHT_OFF;
-					B3 = 0;B4 = 0;B5 = 0;
-			} else if(!A0) {
+					B1 = 0;
+			} else if(door_state == DOOR_CLOSE) {
 				if(int_light_dimmer < 100) { //Wait for (100*100ms=)10 seconds
 					int_light_dimmer++;
 					int_light_counter = 0;
 					state = INT_LIGHT_ON;
-					B3 = 1;B4 = 1;B5 = 1;
+					B1 = 1;
 				} else {
 					int_light_counter = 0;
 					int_light_dimmer = 0;
 					int_light_brightness = 10;
 					state = INT_LIGHT_DIMMING_OFF;
-					B3 = 1;B4 = 1;B5 = 1;
+					B1 = 1;
 				}
-			}	else if(A0) {
+			}	else if(door_state == DOOR_OPEN) {
 				if(int_light_counter < 200) { //Wait for (200*100ms=)20 seconds
 					int_light_counter++;
 					int_light_dimmer = 0;
 					state = INT_LIGHT_ON;
-					B3 = 1;B4 = 1;B5 = 1;
+					B1 = 1;
 				} else {
 					int_light_counter = 0;
 					int_light_dimmer = 0;
 					state = INT_LIGHT_OFF;
-					B3 = 0;B4 = 0;B5 = 0;
+					B1 = 0;
+					int_light_door_reset = 1;
 				}
 			} 
 			break;
 			case INT_LIGHT_DIMMING_OFF:
-			if (A1) {
+			if (engine_state == ENGINE_ON) {
 					int_light_counter = 0;
 					int_light_dimmer = 0;
 					state = INT_LIGHT_OFF;
-					B3 = 0;B4 = 0;B5 = 0;
-			} else if(!A0) {
+					B1 = 0;
+			} else if(door_state == DOOR_CLOSE) {
 					if(int_light_brightness > 1) {
 						int_light_brightness--;
 						state = INT_LIGHT_DIMMING_OFF;
-						B3 = 1;B4 = 1;B5 = 1;
+						B1 = 1;
 					} else {
 						int_light_counter = 0;
 						int_light_dimmer = 0;
 						state = INT_LIGHT_OFF;
-						B3 = 0;B4 = 0;B5 = 0;
+						B1 = 0;
 					}
-			} else if(A0) {
+			} else if(door_state == DOOR_OPEN) {
 					int_light_counter = 0;
 					int_light_dimmer = 0;
 					state = INT_LIGHT_ON;
-					B3 = 1;B4 = 1;B5 = 1;
+					B1 = 1;
 			}
+			break;
+		default:
+			state = -1;
+	}
+	return state;
+}
+
+int ALARM_StMch(int state) 
+{
+	switch (state) {
+		case (-1):
+			state = ALARM_OFF;
+			break;
+		case ALARM_OFF:
+			if(engine_state == ENGINE_ON && door_state == DOOR_OPEN) {
+				alarm_counter = 0;
+				state = ALARM_ON;
+			} else {
+				state = ALARM_OFF;
+				alarm_counter = 0;
+				B2 = 0;
+			}
+			break;
+		case ALARM_ON:
+			if (engine_state == ENGINE_OFF || door_state == DOOR_CLOSE) {
+					state = ALARM_OFF;
+					alarm_counter = 0;
+					B2 = 0;
+			} else {
+				if(alarm_counter == 0) {
+					state = ALARM_ON;
+					B2 = 1;
+					alarm_counter = 1;
+				} else if(alarm_counter == 1) {
+					state = ALARM_ON;
+					B2 = 0;
+					alarm_counter = 0;
+				}
+			}	
 			break;
 		default:
 			state = -1;
@@ -267,6 +325,18 @@ int INT_LIGHT_StMch(int state)
 /*----------------------------------------------------------------------------
  *				Task 7 'ALARM_Ctrl':	Controls alarm of the Car 	 
  ----------------------------------------------------------------------------*/
+__task void ALARM_Ctrl(void) {
+	int state = -1;
+	const unsigned int period = 100;
+	os_itv_set(period);	
+	while(1){
+		read_buttons();		
+		state = ALARM_StMch(state);
+		write_led();
+		os_itv_wait();
+	}
+}
+
 
 /*----------------------------------------------------------------------------
  *				Task 6 'INT_LIGHT_Ctrl':	Controls internal light of the Car 	 
@@ -295,6 +365,7 @@ __task void DOOR_Ctrl(void) {
 		read_buttons();
 		if(A0 && door_state == DOOR_OPEN) {
 			door_state = DOOR_CLOSE;
+			int_light_door_reset = 0;
 		} else if(A0 && door_state == DOOR_CLOSE) {
 			door_state = DOOR_OPEN;
 		}
@@ -422,6 +493,7 @@ __task void init (void) {
   ADC_Conversion_ID = os_tsk_create(ADC_Con, 0);    
 	PWM_Generator_ID = os_tsk_create(PWM_Gen, 0);
 	INT_LIGHT_Controller_ID = os_tsk_create(INT_LIGHT_Ctrl, 0);
+	ALARM_Controller_ID = os_tsk_create(ALARM_Ctrl, 0);
 	ENGINE_Controller_ID = os_tsk_create(ENGINE_Ctrl, 0);
 	DOOR_Controller_ID = os_tsk_create(DOOR_Ctrl, 0);
 	
