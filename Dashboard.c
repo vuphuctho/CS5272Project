@@ -192,6 +192,8 @@ void write_aircon_LCD(char * msg) {
 	print_uns_char((temperature-80)/8);
 	LCD_gotoxy(1,2);
 	LCD_puts(msg);
+	// delay for 1 sec and release
+	os_dly_wait(1000);
 	os_mut_release (&LCD_Mutex);
 }
 
@@ -682,14 +684,14 @@ __task void init (void) {
   LCD_cls(); //Clearing LCD screen
  
   // create instance of tasks 
-  ADC_Conversion_ID = os_tsk_create(ADC_Con, 1);    
-	PWM_Generator_ID = os_tsk_create(PWM_Gen, 1);
+  ADC_Conversion_ID = os_tsk_create(ADC_Con, 4);    
+	PWM_Generator_ID = os_tsk_create(PWM_Gen, 4);
 	INT_LIGHT_Controller_ID = os_tsk_create(INT_LIGHT_Ctrl, 3);
 	ALARM_Controller_ID = os_tsk_create(ALARM_Ctrl, 2);
 	ENGINE_Controller_ID = os_tsk_create(ENGINE_Ctrl, 2);
 	//COLLISION_Controller_ID = os_tsk_create(COLLISION_Ctrl, 1);
 	DOOR_Controller_ID = os_tsk_create(DOOR_Ctrl, 2);
-	//AIRCON_Controller_ID = os_tsk_create(Aircon_Ctrl, 1);
+	AIRCON_Controller_ID = os_tsk_create(Aircon_Ctrl, 1);
 	
   os_tsk_delete_self ();
 }
