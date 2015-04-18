@@ -27,10 +27,10 @@ unsigned char B0 = 0,B1 = 0,B2 = 0,B3 = 0,B4 = 0,B5 = 0,B6 = 0,B7 = 0; //B0-B7 r
 
 // global variable to access by all tasks
 short d_cycle;														/* duty cycle to control brightness */
-short potentiometer; 											/* potentiometer value */
-short slide_sensor; 											/* slider value */
-short force_sensor;
-short temperature;
+short potentiometer = 0; 											/* potentiometer value */
+short slide_sensor = 0; 											/* slider value */
+short force_sensor = 0;
+short temperature = 0;
 
 int counter;
 
@@ -45,13 +45,13 @@ int int_light_brightness;
 int int_light_counter_max = 60;
 int ambient_light_threshold = 512;
 int int_light_door_reset = 0;
+int int_light_dimming_counter;
 // states used in the internal light controller
 enum INT_LIGHT_States {INT_LIGHT_OFF, INT_LIGHT_ON, INT_LIGHT_DIMMING_OFF, INT_LIGHT_DIMMING_ON} INT_LIGHT_State;
 
 // Alarm Controller
 int alarm_counter;
 enum ALARM_States {ALARM_ON, ALARM_OFF} ALARM_State;
-
 
 // states used for engine
 enum ENGINE_States {ENGINE_OFF, ENGINE_ON} ENGINE_State;
@@ -68,11 +68,17 @@ int collision_threshold = 300;
 int collision_reset = 0;
 
 // states used for air conditioner control
-enum AIRCON_States {START, HEATER_ON, COOLER_ON} AIRCON_state;
-int heater_upperbound = 208;
+enum AIRCON_States {ALL_OFF, HEATER_ON, COOLER_ON} AIRCON_state;
 int heater_lowerbound = 160;
-int cooler_upperbound = 292;
+int heater_upperbound = 208;
 int cooler_lowerbound = 256;
+int cooler_upperbound = 292;
+
+// Alarm Controller
+enum SPEED_ALARM_States {SPEED_ALARM_ON, SPEED_ALARM_OFF} SPEED_ALARM_State;
+int speed_alarm_counter;
+int speed_alarm_threshold = 200;
+int speed_alarm_counter;
 
 // id of tasks involved in the program
 OS_TID ADC_Conversion_ID;									/* ID for task 'ADC_Con' */
@@ -81,11 +87,11 @@ OS_TID PWM_Generator_ID;									/* ID for task 'PWM_Gen' */
 OS_TID INT_LIGHT_Controller_ID;						/* ID for task 'INT_LIGHT_Ctrl' */
 OS_TID ALARM_Controller_ID;								/* ID for task 'ALARM_Ctrl' */
 OS_TID COLLISION_Controller_ID;						/* ID for task 'COLLISION_Ctrl' */
-
 OS_TID ENGINE_Controller_ID;							/* ID for task 'ENGINE_Ctrl' */
 OS_TID DOOR_Controller_ID;								/* ID for task 'DOOR_Ctrl' */
-OS_TID AIRCON_Controller_ID;							/* ID for task 'Aircont_Ctrl' */
-OS_TID INT_LIGHT_DIM_ID; 
+OS_TID AIRCON_Controller_ID;							/* ID for task 'AIRCON_Ctrl' */
+OS_TID INT_LIGHT_DIM_Controller_ID; 			/* ID for task 'INT_LIGHT_DIM_Ctrl' */
+OS_TID SPEED_ALARM_Controller_ID; 				/* ID for task 'SPEED_ALARM_Ctrl' */
 
 // Mutex
 OS_MUT LCD_Mutex;
@@ -120,14 +126,18 @@ void read_mailboxes()
 	void *msg1, *msg2, *msg3, *msg4;
 	// wait for mailboxes
 	os_mbx_wait(&mailbox1, &msg1, 0xffff);
-	os_mbx_wait(&mailbox2, &msg2, 0xffff);
-	os_mbx_wait(&mailbox3, &msg3, 0xffff);
-	os_mbx_wait(&mailbox4, &msg4, 0xffff);
-	// process mailboxes
 	potentiometer = * (short *)msg1;
-	slide_sensor  = * (short *)msg2;
+	os_mbx_wait(&mailbox3, &msg3, 0xffff);
 	force_sensor  = * (short *)msg3;
-	temperature  = * (short *)msg4;
+	if(engine_state == ENGINE_ON) {
+		os_mbx_wait(&mailbox2, &msg2, 0xffff);
+		slide_sensor  = * (short *)msg2;
+		os_mbx_wait(&mailbox4, &msg4, 0xffff);
+		temperature  = * (short *)msg4;
+	} else {
+		slide_sensor  = 0;
+		temperature  = 0;
+	}
 	// free mailboxes
 	free(msg1); free(msg2); free(msg3); free(msg4);
 }
@@ -159,9 +169,16 @@ void write_led()
   GPIO7->DR[0x3FC] = mask;
 }
 
+void delay(int timeout) {
+	U32 ticks;
+	ticks = os_time_get ();
+	while ((os_time_get () - ticks) < timeout){
+	}
+}
+
 //Function to write to LCD
 void write_LCD() {
-	os_mut_wait (&LCD_Mutex, 1000);
+	os_mut_wait(&LCD_Mutex, 0xffff);
 	LCD_cls();
 	LCD_puts("S:");
 	print_uns_char(slide_sensor);
@@ -182,35 +199,46 @@ void write_LCD() {
 	} else {
 		LCD_puts("CLOSED");
 	}
-	os_mut_release (&LCD_Mutex);
+	os_mut_release(&LCD_Mutex);
 }
+
+//Function to write collision to LCD
+void write_speed_alarm_LCD() {
+	os_mut_wait(&LCD_Mutex, 1000);
+	LCD_cls();
+	LCD_puts("Speed Limit");
+	LCD_gotoxy(1,2);
+	LCD_puts("Exceeded...");
+	// delay for 1 sec and release
+	delay(1000);
+  os_mut_release(&LCD_Mutex);
+}
+
 //Function to write air conditioner status to LCD
 void write_aircon_LCD(char * msg) {
-	os_mut_wait(&LCD_Mutex, 0xffff);
+	os_mut_wait(&LCD_Mutex, 1000);
 	LCD_cls();
 	LCD_puts("Temp: ");
 	print_uns_char((temperature-80)/8);
 	LCD_gotoxy(1,2);
 	LCD_puts(msg);
 	// delay for 1 sec and release
-	os_dly_wait(1000);
-	os_mut_release (&LCD_Mutex);
+	delay(1000);
+	os_mut_release(&LCD_Mutex);
 }
 
 //Function to write collision to LCD
 void write_collision_LCD() {
-	int timer = 0;
-	os_mut_wait (&LCD_Mutex, 1000);
+	os_mut_wait(&LCD_Mutex, 1000);
 	LCD_cls();
 	LCD_puts("Collision...");
 	LCD_gotoxy(1,2);
 	LCD_puts("Impact:");
 	print_uns_char(force_sensor);
-	while(timer < 100) {
-		timer++;
-	}
-	write_LCD();
-	os_mut_release (&LCD_Mutex);
+	write_led();
+	// delay for 1 sec and release
+	delay(2000);
+	os_mut_release(&LCD_Mutex);
 }
 
 int PWM_StMch_B0(int state) 
@@ -248,7 +276,7 @@ int PWM_StMch_B0(int state)
 
 int PWM_StMch_B1(int state) 
 {
-	int high = 20 * int_light_brightness/200;
+	int high = 20 * int_light_brightness/30;
 	int low = 20 - high;
 	switch (state) {
 		case (-1):
@@ -256,20 +284,20 @@ int PWM_StMch_B1(int state)
 			state = B1_ON;
 			break;
 		case B1_OFF:
-			if (counter < low) {
-				counter++;
+			if (int_light_dimming_counter < low) {
+				int_light_dimming_counter++;
 			} else {
 				B1 = 1;
-				counter = 0;
+				int_light_dimming_counter = 0;
 				state = B1_ON;
 			}
 			break;
 		case B1_ON:
-			if (counter <high) {
-					counter++;
+			if (int_light_dimming_counter <high) {
+					int_light_dimming_counter++;
 			} else {
 				B1 = 0;
-				counter = 0;
+				int_light_dimming_counter = 0;
 				state = B1_OFF;
 			}
 			break;
@@ -277,6 +305,76 @@ int PWM_StMch_B1(int state)
 			state = -1;
 	}
 	return state;
+}
+
+int SPEED_ALARM_StMch(int state) 
+{
+	switch (state) {
+		case (-1):
+			state = SPEED_ALARM_OFF;
+			break;
+		case SPEED_ALARM_OFF:
+			if(engine_state == ENGINE_ON && slide_sensor >= speed_alarm_threshold) {
+				state = SPEED_ALARM_ON;
+				speed_alarm_counter = 0;
+				B4 = 0;
+				write_speed_alarm_LCD();
+			} else {
+				state = SPEED_ALARM_OFF;
+				speed_alarm_counter = 0;
+				B4 = 0;
+			}
+			break;
+		case SPEED_ALARM_ON:
+			if(engine_state == ENGINE_OFF || slide_sensor < speed_alarm_threshold - 10) {
+				state = SPEED_ALARM_OFF;
+				speed_alarm_counter = 0;
+				B4 = 0;
+			} else if(engine_state == ENGINE_ON){
+					if(speed_alarm_counter == 0) {
+						state = SPEED_ALARM_ON;
+						B4 = 1;
+						speed_alarm_counter = 1;
+					} else if(speed_alarm_counter == 1) {
+						state = SPEED_ALARM_ON;
+						B4 = 0;
+						speed_alarm_counter = 0;
+					}
+			}	
+			break;
+		default:
+			state = -1;
+	}
+	return state;
+}
+
+/*-------------------------------------------------------------------------------
+ *				Task 10 'SPEED_ALARM_Ctrl':	Controls speed alarm 	 
+ --------------------------------------------------------------------------------*/
+__task void SPEED_ALARM_Ctrl(void) {
+	int state = -1;
+	const unsigned int period = 100;
+	os_itv_set(period);	
+	while(1){
+		state = SPEED_ALARM_StMch(state);
+		write_led();
+		os_itv_wait();
+	}
+}
+
+/*-------------------------------------------------------------------------------
+ *				Task 9 'INT_LIGHT_DIM_Ctrl':	Controls PWM generator for internal light 	 
+ --------------------------------------------------------------------------------*/
+__task void INT_LIGHT_DIM_Ctrl(void) {
+	int state = -1;
+	int int_light_dimming_counter = 5000;
+	const unsigned int period = 1;
+	os_itv_set(period);
+	while (int_light_dimming_counter) {
+		state = PWM_StMch_B1(state);
+		int_light_dimming_counter--;
+		os_itv_wait();
+	}
 }
 
 int INT_LIGHT_StMch(int state) 
@@ -322,7 +420,7 @@ int INT_LIGHT_StMch(int state)
 				} else {
 					int_light_counter = 0;
 					int_light_dimmer = 0;
-					int_light_brightness = 10;
+					int_light_brightness = 50;
 					state = INT_LIGHT_DIMMING_OFF;
 					B1 = 1;
 				}
@@ -349,16 +447,21 @@ int INT_LIGHT_StMch(int state)
 					B1 = 0;
 			} else if(door_state == DOOR_CLOSE) {
 					if(int_light_brightness > 1) {
-						int_light_brightness--;
 						state = INT_LIGHT_DIMMING_OFF;
 						B1 = 1;
+						if(int_light_brightness == 50) {
+							INT_LIGHT_DIM_Controller_ID = os_tsk_create(INT_LIGHT_DIM_Ctrl, 4);
+						}
+						int_light_brightness--;
 					} else {
+						os_tsk_delete (INT_LIGHT_DIM_Controller_ID);
 						int_light_counter = 0;
 						int_light_dimmer = 0;
 						state = INT_LIGHT_OFF;
 						B1 = 0;
 					}
 			} else if(door_state == DOOR_OPEN) {
+					os_tsk_delete (INT_LIGHT_DIM_Controller_ID);
 					int_light_counter = 0;
 					int_light_dimmer = 0;
 					state = INT_LIGHT_ON;
@@ -413,9 +516,9 @@ int ALARM_StMch(int state)
 int AIRCON_StMch(int state) {
 	switch (state) {
 		case (-1):
-			state = START;
+			state = ALL_OFF;
 			break;
-		case START:
+		case ALL_OFF:
 			if (temperature<heater_lowerbound) {
 					state = HEATER_ON;
 					B5 = 1;
@@ -428,14 +531,14 @@ int AIRCON_StMch(int state) {
 			break;
 		case HEATER_ON:
 			if (temperature>heater_upperbound) {
-					state = START;
+					state = ALL_OFF;
 					B5 = 0;
 					write_aircon_LCD("HEATER OFF");
 			}
 			break;
 		case COOLER_ON:
 			if (temperature<cooler_lowerbound) {
-					state = START;
+					state = ALL_OFF;
 					B6 = 0;
 					write_aircon_LCD("COOLER OFF");
 			}
@@ -446,29 +549,8 @@ int AIRCON_StMch(int state) {
 	return state;
 }
 
-
-__task void IntLightDimCtrl(void) {
-	int state = -1;
-	int count = 100;
-	const unsigned int period = 1;
-	os_itv_set(period);
-	while (count) {
-		state = PWM_StMch_B1(state);
-		count--;
-		os_itv_wait();
-	}
-	os_tsk_delete_self();
-}
-
-/*----------------------------------------------------------------------------
- *				Task 8 'COLLISION_Ctrl':	Controls collision of the Car 	 
- ----------------------------------------------------------------------------*/
-__task void COLLISION_Ctrl(void) {
-	int state = -1;
-	const unsigned int period = 100;
-	os_itv_set(period);	
-	while(1){
-		switch (state) {
+int COLLISION_StMch(int state) {
+	switch (state) {
 		case (-1):
 			state = AIRBAG_OFF;
 			break;
@@ -476,6 +558,8 @@ __task void COLLISION_Ctrl(void) {
 			if(collision_reset == 0 && force_sensor > collision_threshold) {
 				state = AIRBAG_ON;
 				collision_reset = 1;
+				B3 = 1;
+				write_collision_LCD();
 			} else {
 				state = AIRBAG_OFF;
 				B3 = 0;
@@ -486,9 +570,6 @@ __task void COLLISION_Ctrl(void) {
 				state = AIRBAG_ON;
 				collision_reset = 0;
 				B3 = 1;
-				write_led();
-				os_mut_init (&LCD_Mutex);
-				write_collision_LCD();
 			} else {
 				state = AIRBAG_OFF;
 				collision_reset = 1;
@@ -497,16 +578,28 @@ __task void COLLISION_Ctrl(void) {
 			break;
 		default:
 			state = -1;
-		}
+	}
+	return state;
+}
+
+/*----------------------------------------------------------------------------
+ *				Task 8 'COLLISION_Ctrl':	Controls collision of the Car 	 
+ ----------------------------------------------------------------------------*/
+__task void COLLISION_Ctrl(void) {
+	int state = -1;
+	const unsigned int period = 100;
+	os_itv_set(period);	
+	while(1){
+		state = COLLISION_StMch(state);
 		write_led();
 		os_itv_wait();
 	}
 }
 
 /*----------------------------------------------------------------------------
- * 				Task 'Aircon_Ctrl: Controls air conditioner of the car
+ * 				Task 'AIRCON_Ctrl: Controls air conditioner of the car
  ----------------------------------------------------------------------------*/
-__task void Aircon_Ctrl(void) {
+__task void AIRCON_Ctrl(void) {
 	int state = -1;
 	const unsigned int period = 100;
 	os_itv_set(period);
@@ -620,17 +713,14 @@ __task void DC_Comp(void){
 __task void ADC_Con(void){
 	const unsigned int period = 100;
 	os_itv_set(period);
-	os_mut_init(&LCD_Mutex);	
+	os_mut_init(&LCD_Mutex);
 	for(;;){ 
 		os_itv_wait();
 		/* Do actions below */
 		start_ADC();
-		DC_Computation_ID = os_tsk_create(DC_Comp, 0);
-		}
+		DC_Computation_ID = os_tsk_create(DC_Comp, 4);
+	}
 }	 // End ADC_Con(void)
-
-
-
 
 
 /*----------------------------------------------------------------------------
@@ -683,16 +773,17 @@ __task void init (void) {
   LCD_cur_off(); //Remove LCD cursor
   LCD_cls(); //Clearing LCD screen
  
-  // create instance of tasks 
-  ADC_Conversion_ID = os_tsk_create(ADC_Con, 4);    
-	PWM_Generator_ID = os_tsk_create(PWM_Gen, 4);
-	INT_LIGHT_Controller_ID = os_tsk_create(INT_LIGHT_Ctrl, 3);
+  // create instance of tasks
+  //os_mut_init(&LCD_Mutex);	
+	ADC_Conversion_ID = os_tsk_create(ADC_Con, 1);
+	COLLISION_Controller_ID = os_tsk_create(COLLISION_Ctrl, 1);
 	ALARM_Controller_ID = os_tsk_create(ALARM_Ctrl, 2);
+	SPEED_ALARM_Controller_ID = os_tsk_create(SPEED_ALARM_Ctrl, 2);
 	ENGINE_Controller_ID = os_tsk_create(ENGINE_Ctrl, 2);
-	//COLLISION_Controller_ID = os_tsk_create(COLLISION_Ctrl, 1);
-	DOOR_Controller_ID = os_tsk_create(DOOR_Ctrl, 2);
-	AIRCON_Controller_ID = os_tsk_create(Aircon_Ctrl, 1);
-	
+	DOOR_Controller_ID = os_tsk_create(DOOR_Ctrl, 2);	
+	AIRCON_Controller_ID = os_tsk_create(AIRCON_Ctrl, 2);
+	INT_LIGHT_Controller_ID = os_tsk_create(INT_LIGHT_Ctrl, 3);
+	PWM_Generator_ID = os_tsk_create(PWM_Gen, 4);
   os_tsk_delete_self ();
 }
 

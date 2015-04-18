@@ -38,7 +38,7 @@ __irq void ADC_IRQ_Handler (void) {     /* AD converter interrupt routine     */
 	os_mbx_init(&mailbox3, sizeof(mailbox3));
 	msg3 = &ForceSensor;	
 	os_mbx_send(&mailbox3, msg3, 0xffff);
-	Temperature = ADC->DR2 & 0x03FF;    /* AD value for global usage (10 bit) */	
+	//Temperature = ADC->DR2 & 0x03FF;    /* AD value for global usage (10 bit) */	
 	os_mbx_init(&mailbox4, sizeof(mailbox4));
 	msg4 = &Temperature;	
 	os_mbx_send(&mailbox4, msg4, 0xffff);
