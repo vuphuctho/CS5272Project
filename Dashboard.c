@@ -69,9 +69,8 @@ int collision_reset = 0;
 
 // states used for air conditioner control
 enum AIRCON_States {ALL_OFF, HEATER_ON, COOLER_ON} AIRCON_state;
-int zero_point = 60; 				// reading value for 0 degree Celcius
-int temperature_range = 40;		// range of temperature
-int heater_lowerbound = 8;		
+int temperature_range = 40;		// range of temperature: [0, 39]
+int heater_lowerbound = 10;		
 int heater_upperbound = 15;
 int cooler_lowerbound = 20;
 int cooler_upperbound = 25;
@@ -136,6 +135,8 @@ void read_mailboxes()
 		slide_sensor  = * (short *)msg2;
 		os_mbx_wait(&mailbox4, &msg4, 0xffff);
 		temperature  = * (short *)msg4;
+		// match reading of 2nd slide sensor to equivalent temperature
+		temperature = temperature/12;
 	} else {
 		slide_sensor  = 0;
 		temperature  = 0;
@@ -190,17 +191,20 @@ void write_LCD() {
 	LCD_gotoxy(8,1);
 	LCD_puts("E:");
 	if(engine_state == ENGINE_ON) {
-		LCD_puts("ON");
+		LCD_puts("1");
 	} else {
-		LCD_puts("OFF");
+		LCD_puts("0");
 	}
-	LCD_gotoxy(8,2);
+	LCD_gotoxy(14,1);
 	LCD_puts("D:");
 	if(door_state == DOOR_OPEN) {
-		LCD_puts("OPEN");
+		LCD_puts("1");
 	} else {
-		LCD_puts("CLOSED");
+		LCD_puts("0");
 	}
+	LCD_gotoxy(8, 2);
+	LCD_puts("T:");
+	print_uns_char(temperature);
 	os_mut_release(&LCD_Mutex);
 }
 
@@ -525,28 +529,44 @@ int AIRCON_StMch(int state) {
 			state = ALL_OFF;
 			break;
 		case ALL_OFF:
-			if (temperature<heater_lowerbound) {
+			if (engine_state==ENGINE_OFF) {
+				state = ALL_OFF;
+			} else {
+				if (temperature<heater_lowerbound && engine_state==ENGINE_ON) {
 					state = HEATER_ON;
 					B5 = 1;
 				  write_aircon_LCD("HEATER ON");
-			} else if (temperature>cooler_upperbound) {
+				} else if (temperature>cooler_upperbound && engine_state==ENGINE_ON) {
 					state = COOLER_ON;
 					B6 = 1;
 					write_aircon_LCD("COOLER ON");
+				} else {
+					state = ALL_OFF;
+				}
 			}
 			break;
 		case HEATER_ON:
-			if (temperature>heater_upperbound) {
-					state = ALL_OFF;
-					B5 = 0;
-					write_aircon_LCD("HEATER OFF");
+			if (engine_state==ENGINE_OFF) {
+				state = ALL_OFF;
+				B5 = 0;
+			} else if (temperature>heater_upperbound) {
+				state = ALL_OFF;
+				B5 = 0;
+				write_aircon_LCD("HEATER OFF");
+			} else {
+				state = HEATER_ON;
 			}
 			break;
 		case COOLER_ON:
-			if (temperature<cooler_lowerbound) {
+			if (engine_state==ENGINE_OFF) {
+				state = ALL_OFF;
+				B6 = 0;
+			} else if (temperature<cooler_lowerbound) {
 					state = ALL_OFF;
 					B6 = 0;
 					write_aircon_LCD("COOLER OFF");
+			} else {
+				state = COOLER_ON;
 			}
 			break;
 		default:
@@ -707,11 +727,9 @@ __task void PWM_Gen(void) {
  ----------------------------------------------------------------------------*/
 __task void DC_Comp(void){
 	read_mailboxes();
-	write_LCD();
 	// compute the duty cycle and save value to D_Cycle
 	d_cycle = potentiometer/200 * 20;
-	// match reading of 2nd slide sensor to equivalent temperature
-	temperature = (temperature - zero_point)/12;	
+	write_LCD();	
 	os_tsk_delete_self();
 }
 

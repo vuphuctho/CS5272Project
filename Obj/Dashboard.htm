@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Obj\Dashboard.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Obj\Dashboard.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5050106: Last Updated: Sun Apr 19 17:33:12 2015
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5050106: Last Updated: Sun Apr 19 17:58:51 2015
 <BR><P>
 <H3>Maximum Stack Usage =         96 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -252,11 +252,12 @@ Global Symbols
 <LI><a href="#[13]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ALARM_Ctrl
 </UL>
 
-<P><STRONG><a name="[3c]"></a>read_mailboxes</STRONG> (Thumb, 108 bytes, Stack size 32 bytes, dashboard.o(.text))
+<P><STRONG><a name="[3c]"></a>read_mailboxes</STRONG> (Thumb, 116 bytes, Stack size 32 bytes, dashboard.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 88<LI>Call Chain = read_mailboxes &rArr; os_mbx_wait &rArr; os_dispatch &rArr; os_put_prio
 </UL>
 <BR>[Calls]<UL><LI><a href="#[3d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;os_mbx_wait
 <LI><a href="#[3e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;free
+<LI><a href="#[3b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_idivmod
 </UL>
 <BR>[Called By]<UL><LI><a href="#[f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DC_Comp
 </UL>
@@ -287,7 +288,7 @@ Global Symbols
 <LI><a href="#[44]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;write_speed_alarm_LCD
 </UL>
 
-<P><STRONG><a name="[41]"></a>write_LCD</STRONG> (Thumb, 120 bytes, Stack size 8 bytes, dashboard.o(.text))
+<P><STRONG><a name="[41]"></a>write_LCD</STRONG> (Thumb, 142 bytes, Stack size 8 bytes, dashboard.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 60<LI>Call Chain = write_LCD &rArr; print_uns_char &rArr; LCD_putc &rArr; lcd_wr_data &rArr; lcd_wait_busy
 </UL>
 <BR>[Calls]<UL><LI><a href="#[42]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;os_mut_wait
@@ -385,7 +386,7 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> dashboard.o(.text)
 </UL>
-<P><STRONG><a name="[4d]"></a>INT_LIGHT_StMch</STRONG> (Thumb, 386 bytes, Stack size 24 bytes, dashboard.o(.text))
+<P><STRONG><a name="[4d]"></a>INT_LIGHT_StMch</STRONG> (Thumb, 374 bytes, Stack size 24 bytes, dashboard.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 88<LI>Call Chain = INT_LIGHT_StMch &rArr; os_tsk_create0 &rArr; os_dispatch &rArr; os_put_prio
 </UL>
 <BR>[Calls]<UL><LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;os_tsk_delete
@@ -400,8 +401,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[13]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ALARM_Ctrl
 </UL>
 
-<P><STRONG><a name="[4f]"></a>AIRCON_StMch</STRONG> (Thumb, 102 bytes, Stack size 8 bytes, dashboard.o(.text))
-<BR><BR>[Stack]<UL><LI>Max Depth = 76<LI>Call Chain = AIRCON_StMch &rArr; write_aircon_LCD &rArr; print_uns_char &rArr; LCD_putc &rArr; lcd_wr_data &rArr; lcd_wait_busy
+<P><STRONG><a name="[4f]"></a>AIRCON_StMch</STRONG> (Thumb, 136 bytes, Stack size 16 bytes, dashboard.o(.text))
+<BR><BR>[Stack]<UL><LI>Max Depth = 84<LI>Call Chain = AIRCON_StMch &rArr; write_aircon_LCD &rArr; print_uns_char &rArr; LCD_putc &rArr; lcd_wr_data &rArr; lcd_wait_busy
 </UL>
 <BR>[Calls]<UL><LI><a href="#[45]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;write_aircon_LCD
 </UL>
@@ -427,7 +428,7 @@ Global Symbols
 <BR>[Address Reference Count : 1]<UL><LI> dashboard.o(.text)
 </UL>
 <P><STRONG><a name="[17]"></a>AIRCON_Ctrl</STRONG> (Thumb, 28 bytes, Stack size 0 bytes, dashboard.o(.text))
-<BR><BR>[Stack]<UL><LI>Max Depth = 76<LI>Call Chain = AIRCON_Ctrl &rArr; AIRCON_StMch &rArr; write_aircon_LCD &rArr; print_uns_char &rArr; LCD_putc &rArr; lcd_wr_data &rArr; lcd_wait_busy
+<BR><BR>[Stack]<UL><LI>Max Depth = 84<LI>Call Chain = AIRCON_Ctrl &rArr; AIRCON_StMch &rArr; write_aircon_LCD &rArr; print_uns_char &rArr; LCD_putc &rArr; lcd_wr_data &rArr; lcd_wait_busy
 </UL>
 <BR>[Calls]<UL><LI><a href="#[4c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;os_itv_wait
 <LI><a href="#[4b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;os_itv_set
@@ -488,7 +489,7 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> dashboard.o(.text)
 </UL>
-<P><STRONG><a name="[f]"></a>DC_Comp</STRONG> (Thumb, 52 bytes, Stack size 0 bytes, dashboard.o(.text))
+<P><STRONG><a name="[f]"></a>DC_Comp</STRONG> (Thumb, 36 bytes, Stack size 0 bytes, dashboard.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 88<LI>Call Chain = DC_Comp &rArr; read_mailboxes &rArr; os_mbx_wait &rArr; os_dispatch &rArr; os_put_prio
 </UL>
 <BR>[Calls]<UL><LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;os_tsk_delete
@@ -600,6 +601,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DC_Comp
 <LI><a href="#[49]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;PWM_StMch_B1
 <LI><a href="#[48]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;PWM_StMch_B0
+<LI><a href="#[3c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;read_mailboxes
 <LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_uns_char
 </UL>
 
