@@ -69,10 +69,12 @@ int collision_reset = 0;
 
 // states used for air conditioner control
 enum AIRCON_States {ALL_OFF, HEATER_ON, COOLER_ON} AIRCON_state;
-int heater_lowerbound = 160;
-int heater_upperbound = 208;
-int cooler_lowerbound = 256;
-int cooler_upperbound = 292;
+int zero_point = 60; 				// reading value for 0 degree Celcius
+int temperature_range = 40;		// range of temperature
+int heater_lowerbound = 8;		
+int heater_upperbound = 15;
+int cooler_lowerbound = 20;
+int cooler_upperbound = 25;
 
 // Alarm Controller
 enum SPEED_ALARM_States {SPEED_ALARM_ON, SPEED_ALARM_OFF} SPEED_ALARM_State;
@@ -219,7 +221,7 @@ void write_aircon_LCD(char * msg) {
 	os_mut_wait(&LCD_Mutex, 1000);
 	LCD_cls();
 	LCD_puts("Temp: ");
-	print_uns_char((temperature-80)/8);
+	print_uns_char(temperature);
 	LCD_gotoxy(1,2);
 	LCD_puts(msg);
 	// delay for 1 sec and release
@@ -708,6 +710,8 @@ __task void DC_Comp(void){
 	write_LCD();
 	// compute the duty cycle and save value to D_Cycle
 	d_cycle = potentiometer/200 * 20;
+	// match reading of 2nd slide sensor to equivalent temperature
+	temperature = (temperature - zero_point)/12;	
 	os_tsk_delete_self();
 }
 
