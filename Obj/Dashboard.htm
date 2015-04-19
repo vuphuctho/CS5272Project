@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Obj\Dashboard.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Obj\Dashboard.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5.03 [Build 76]: Last Updated: Sun Apr 19 02:09:03 2015
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5050106: Last Updated: Sun Apr 19 17:18:14 2015
 <BR><P>
 <H3>Maximum Stack Usage =         96 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -58,14 +58,14 @@ Function Pointers
  <LI><a href="#[2]">SWI_Handler</a> from hal_arm.o(.emb_text) referenced from str91x.o(Reset)
  <LI><a href="#[d]">Switch_task</a> from hal_arm.o(.emb_text) referenced from hal_arm.o(.emb_text)
  <LI><a href="#[1]">UndefHandler</a> from str91x.o(Reset) referenced from str91x.o(Reset)
- <LI><a href="#[1d]">__SWI_0</a> from hal_arm.o(i.__SWI_0) referenced from SWI_Table.o(SWI_TABLE)
- <LI><a href="#[1e]">__SWI_1</a> from rt_membox.o(i.__SWI_1) referenced from SWI_Table.o(SWI_TABLE)
- <LI><a href="#[1f]">__SWI_2</a> from rt_membox.o(i.__SWI_2) referenced from SWI_Table.o(SWI_TABLE)
- <LI><a href="#[20]">__SWI_3</a> from hal_arm.o(i.__SWI_3) referenced from SWI_Table.o(SWI_TABLE)
- <LI><a href="#[21]">__SWI_4</a> from hal_arm.o(i.__SWI_4) referenced from SWI_Table.o(SWI_TABLE)
- <LI><a href="#[22]">__SWI_5</a> from rtx_config.o(.text) referenced from SWI_Table.o(SWI_TABLE)
- <LI><a href="#[23]">__SWI_6</a> from hal_arm.o(i.__SWI_6) referenced from SWI_Table.o(SWI_TABLE)
- <LI><a href="#[24]">__SWI_7</a> from hal_arm.o(i.__SWI_7) referenced from SWI_Table.o(SWI_TABLE)
+ <LI><a href="#[1d]">__SWI_0</a> from hal_arm.o(i.__SWI_0) referenced from swi_table.o(SWI_TABLE)
+ <LI><a href="#[1e]">__SWI_1</a> from rt_membox.o(i.__SWI_1) referenced from swi_table.o(SWI_TABLE)
+ <LI><a href="#[1f]">__SWI_2</a> from rt_membox.o(i.__SWI_2) referenced from swi_table.o(SWI_TABLE)
+ <LI><a href="#[20]">__SWI_3</a> from hal_arm.o(i.__SWI_3) referenced from swi_table.o(SWI_TABLE)
+ <LI><a href="#[21]">__SWI_4</a> from hal_arm.o(i.__SWI_4) referenced from swi_table.o(SWI_TABLE)
+ <LI><a href="#[22]">__SWI_5</a> from rtx_config.o(.text) referenced from swi_table.o(SWI_TABLE)
+ <LI><a href="#[23]">__SWI_6</a> from hal_arm.o(i.__SWI_6) referenced from swi_table.o(SWI_TABLE)
+ <LI><a href="#[24]">__SWI_7</a> from hal_arm.o(i.__SWI_7) referenced from swi_table.o(SWI_TABLE)
  <LI><a href="#[27]">__main</a> from entry.o(.ARM.Collect$$$$00000000) referenced from str91x.o(Reset)
  <LI><a href="#[1a]">init</a> from dashboard.o(.text) referenced from dashboard.o(.text)
  <LI><a href="#[8]">main</a> from dashboard.o(.text) referenced from entry9a.o(.ARM.Collect$$$$0000000B)
@@ -342,7 +342,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[50]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;COLLISION_StMch
 </UL>
 
-<P><STRONG><a name="[48]"></a>PWM_StMch_B0</STRONG> (Thumb, 90 bytes, Stack size 24 bytes, dashboard.o(.text))
+<P><STRONG><a name="[48]"></a>PWM_StMch_B0</STRONG> (Thumb, 88 bytes, Stack size 24 bytes, dashboard.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 52<LI>Call Chain = PWM_StMch_B0 &rArr; __aeabi_idivmod &rArr; __aeabi_uidivmod
 </UL>
 <BR>[Calls]<UL><LI><a href="#[3b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_idivmod
@@ -488,7 +488,7 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> dashboard.o(.text)
 </UL>
-<P><STRONG><a name="[f]"></a>DC_Comp</STRONG> (Thumb, 34 bytes, Stack size 0 bytes, dashboard.o(.text))
+<P><STRONG><a name="[f]"></a>DC_Comp</STRONG> (Thumb, 36 bytes, Stack size 0 bytes, dashboard.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 88<LI>Call Chain = DC_Comp &rArr; read_mailboxes &rArr; os_mbx_wait &rArr; os_dispatch &rArr; os_put_prio
 </UL>
 <BR>[Calls]<UL><LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;os_tsk_delete
@@ -565,7 +565,7 @@ Global Symbols
 <BR>[Address Reference Count : 1]<UL><LI> hal_arm.o(.emb_text)
 </UL>
 <P><STRONG><a name="[22]"></a>__SWI_5</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, rtx_config.o(.text))
-<BR>[Address Reference Count : 1]<UL><LI> SWI_Table.o(SWI_TABLE)
+<BR>[Address Reference Count : 1]<UL><LI> swi_table.o(SWI_TABLE)
 </UL>
 <P><STRONG><a name="[c]"></a>tsk_unlock</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, rtx_config.o(.text))
 <BR><BR>[Called By]<UL><LI><a href="#[1d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__SWI_0
@@ -620,25 +620,25 @@ Global Symbols
 <LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;os_stk_check
 <LI><a href="#[c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tsk_unlock
 </UL>
-<BR>[Address Reference Count : 1]<UL><LI> SWI_Table.o(SWI_TABLE)
+<BR>[Address Reference Count : 1]<UL><LI> swi_table.o(SWI_TABLE)
 </UL>
 <P><STRONG><a name="[1e]"></a>__SWI_1</STRONG> (Thumb, 14 bytes, Stack size 0 bytes, rt_membox.o(i.__SWI_1))
-<BR>[Address Reference Count : 1]<UL><LI> SWI_Table.o(SWI_TABLE)
+<BR>[Address Reference Count : 1]<UL><LI> swi_table.o(SWI_TABLE)
 </UL>
 <P><STRONG><a name="[1f]"></a>__SWI_2</STRONG> (Thumb, 24 bytes, Stack size 0 bytes, rt_membox.o(i.__SWI_2))
-<BR>[Address Reference Count : 1]<UL><LI> SWI_Table.o(SWI_TABLE)
+<BR>[Address Reference Count : 1]<UL><LI> swi_table.o(SWI_TABLE)
 </UL>
 <P><STRONG><a name="[20]"></a>__SWI_3</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, hal_arm.o(i.__SWI_3))
-<BR>[Address Reference Count : 1]<UL><LI> SWI_Table.o(SWI_TABLE)
+<BR>[Address Reference Count : 1]<UL><LI> swi_table.o(SWI_TABLE)
 </UL>
 <P><STRONG><a name="[21]"></a>__SWI_4</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, hal_arm.o(i.__SWI_4))
-<BR>[Address Reference Count : 1]<UL><LI> SWI_Table.o(SWI_TABLE)
+<BR>[Address Reference Count : 1]<UL><LI> swi_table.o(SWI_TABLE)
 </UL>
 <P><STRONG><a name="[23]"></a>__SWI_6</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, hal_arm.o(i.__SWI_6))
-<BR>[Address Reference Count : 1]<UL><LI> SWI_Table.o(SWI_TABLE)
+<BR>[Address Reference Count : 1]<UL><LI> swi_table.o(SWI_TABLE)
 </UL>
 <P><STRONG><a name="[24]"></a>__SWI_7</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, hal_arm.o(i.__SWI_7))
-<BR>[Address Reference Count : 1]<UL><LI> SWI_Table.o(SWI_TABLE)
+<BR>[Address Reference Count : 1]<UL><LI> swi_table.o(SWI_TABLE)
 </UL>
 <P><STRONG><a name="[84]"></a>__scatterload_copy</STRONG> (ARM, 28 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_copy), UNUSED)
 
@@ -772,7 +772,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[10]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ADC_IRQ_Handler (via BLX)
 </UL>
 
-<P><STRONG><a name="[67]"></a>os_mbx_psh</STRONG> (Thumb, 132 bytes, Stack size 16 bytes, rt_mailbox.o(i.os_mbx_psh))
+<P><STRONG><a name="[67]"></a>os_mbx_psh</STRONG> (Thumb, 140 bytes, Stack size 16 bytes, rt_mailbox.o(i.os_mbx_psh))
 <BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = os_mbx_psh &rArr; os_put_prio
 </UL>
 <BR>[Calls]<UL><LI><a href="#[64]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;os_rmv_dly
@@ -934,7 +934,7 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> hal_arm.o(.emb_text)
 </UL>
-<P><STRONG><a name="[b]"></a>os_sys_manager</STRONG> (Thumb, 186 bytes, Stack size 0 bytes, rt_system.o(i.os_sys_manager))
+<P><STRONG><a name="[b]"></a>os_sys_manager</STRONG> (Thumb, 184 bytes, Stack size 0 bytes, rt_system.o(i.os_sys_manager))
 <BR><BR>[Stack]<UL><LI>Max Depth = 24 + Unknown Stack Size
 <LI>Call Chain = os_sys_manager &rArr; os_dec_dly &rArr; os_put_prio
 </UL>

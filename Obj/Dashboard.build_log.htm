@@ -2,9 +2,27 @@
 <body>
 <pre>
 <h1>µVision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: µVision V5.14.0.0
+Copyright (C) 2015 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: Vu Phuc Tho, NUS, LIC=----
+ 
+Tool Versions:
+Toolchain:       MDK-Lite  Version: 5.14.0.0
+Toolchain Path:  C:\Keil_v5\ARM\ARMCC\Bin
+C Compiler:      Armcc.exe V5.05 update 1 (build 106)
+Assembler:       Armasm.exe V5.05 update 1 (build 106)
+Linker/Locator:  ArmLink.exe V5.05 update 1 (build 106)
+Library Manager: ArmAr.exe V5.05 update 1 (build 106)
+Hex Converter:   FromElf.exe V5.05 update 1 (build 106)
+CPU DLL:         SARM.DLL V5.14.0.0
+Dialog DLL:      DARMST9.DLL V1.07
+Target DLL:      UL2ARM.DLL V1.74.5.0
+Dialog DLL:      TARMST9.DLL V1.08
+ 
 <h2>Project:</h2>
-C:\Users\A0107674B\Documents\GitHub\CS5272Project\Dashboard.uvproj
-Project File Date:  04/18/2015
+C:\Users\a0107674b\Desktop\CS5272Project\Dashboard.uvproj
+Project File Date:  04/19/2015
 
 <h2>Output:</h2>
 Rebuild target 'MCBSTR9'
@@ -13,26 +31,14 @@ compiling IRQ.c...
 compiling Dashboard.c...
 Dashboard.c(224): warning:  #167-D: argument of type "char *" is incompatible with parameter of type "U8 *"
         LCD_puts(msg);
-Dashboard.c: 1 warning, 0 errors
+Dashboard.c(382): warning:  #1461-D: function declared with "noreturn" does return
+  }
+Dashboard.c: 2 warnings, 0 errors
 compiling RTX_Config.c...
 assembling STR91x.s...
 linking...
-Program Size: Code=7880 RO-data=132 RW-data=204 ZI-data=12836  
-".\Obj\Dashboard.axf" - 0 Error(s), 1 Warning(s).
-Load "C:\\Users\\A0107674B\\Documents\\GitHub\\CS5272Project\\Obj\\Dashboard.axf" 
-Erase Done.
-Programming Done.
-Verify OK.
-Application running ...
-Clean started: Project: 'Dashboard'
-   deleting intermediate output files for target 'Simulator'
-   deleting intermediate output files for target 'MCBSTR9'
-or target 'MCBSTR9'
-shboard'
-   deleting intermediate output files for target 'Simulator'
-   deleting intermediate output files for target 'MCBSTR9'
-iled  -  Could not load file 'C:\Users\A0107674B\Documents\GitHub\CS5272Project\Obj\Dashboard.axf'
-Clean started: Project: 'Dashboard'
-   deleting intermediate output files for target 'Simulator'
-   deleting intermediate output files for target 'MCBSTR9'
-get 'MCBSTR9'
+Program Size: Code=7884 RO-data=132 RW-data=204 ZI-data=12836  
+".\Obj\Dashboard.axf" - 0 Error(s), 2 Warning(s).
+</pre>
+</body>
+</html>

@@ -1,0 +1,102 @@
+Dependencies for Project 'Dashboard', Target 'MCBSTR9': (DO NOT MODIFY !)
+F (.\LCD.c)(0x55336D87)(--thumb -c --cpu ARM966E-S -D__RTX -D__EVAL -D__MICROLIB -g -O3 --apcs=interwork -I C:\Keil_v5\ARM\RV31\INC-I C:\Keil_v5\ARM\CMSIS\Include-I C:\Keil_v5\ARM\Inc\ST\91x-D__UVISION_VERSION="514"-o .\obj\lcd.o --depend .\obj\lcd.d)
+I (C:\Keil_v5\ARM\RV31\INC\RTL.h)(0x54327744)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_lib.H)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_map.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_conf.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_type.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_ahbapb.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_emi.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_dma.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_fmi.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_vic.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_it.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_wiu.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_tim.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_scu.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_gpio.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_rtc.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_uart.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_ssp.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_can.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_adc.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_wdg.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_i2c.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_mc.h)(0x53463634)
+I (LCD.h)(0x55336D87)
+F (.\IRQ.c)(0x55336D87)(--thumb -c --cpu ARM966E-S -D__RTX -D__EVAL -D__MICROLIB -g -O3 --apcs=interwork -I C:\Keil_v5\ARM\RV31\INC-I C:\Keil_v5\ARM\CMSIS\Include-I C:\Keil_v5\ARM\Inc\ST\91x-D__UVISION_VERSION="514"-o .\obj\irq.o --depend .\obj\irq.d)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_lib.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_map.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_conf.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_type.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_ahbapb.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_emi.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_dma.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_fmi.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_vic.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_it.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_wiu.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_tim.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_scu.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_gpio.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_rtc.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_uart.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_ssp.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_can.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_adc.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_wdg.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_i2c.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_mc.h)(0x53463634)
+I (C:\Keil_v5\ARM\RV31\INC\RTL.h)(0x54327744)
+F (.\Dashboard.c)(0x5533716B)(--thumb -c --cpu ARM966E-S -D__RTX -D__EVAL -D__MICROLIB -g -O3 --apcs=interwork -I C:\Keil_v5\ARM\RV31\INC-I C:\Keil_v5\ARM\CMSIS\Include-I C:\Keil_v5\ARM\Inc\ST\91x-D__UVISION_VERSION="514"-o .\obj\dashboard.o --depend .\obj\dashboard.d)
+I (C:\Keil_v5\ARM\RV31\INC\RTL.h)(0x54327744)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_lib.H)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_map.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_conf.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_type.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_ahbapb.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_emi.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_dma.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_fmi.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_vic.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_it.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_wiu.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_tim.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_scu.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_gpio.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_rtc.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_uart.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_ssp.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_can.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_adc.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_wdg.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_i2c.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_mc.h)(0x53463634)
+I (LCD.h)(0x55336D87)
+I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x5475F300)
+F (.\RTX_Config.c)(0x55336D87)(--thumb -c --cpu ARM966E-S -D__RTX -D__EVAL -D__MICROLIB -g -O3 --apcs=interwork -I C:\Keil_v5\ARM\RV31\INC-I C:\Keil_v5\ARM\CMSIS\Include-I C:\Keil_v5\ARM\Inc\ST\91x-D__UVISION_VERSION="514"-o .\obj\rtx_config.o --depend .\obj\rtx_config.d)
+I (C:\Keil_v5\ARM\RV31\INC\RTL.h)(0x54327744)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_lib.H)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_map.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_conf.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_type.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_ahbapb.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_emi.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_dma.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_fmi.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_vic.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_it.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_wiu.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_tim.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_scu.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_gpio.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_rtc.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_uart.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_ssp.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_can.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_adc.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_wdg.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_i2c.h)(0x53463634)
+I (C:\Keil_v5\ARM\Inc\ST\91x\91x_mc.h)(0x53463634)
+I (C:\Keil_v5\ARM\RV31\INC\RTX_lib.c)(0x5408474E)
+F (.\STR91x.s)(0x55336D87)(--cpu ARM966E-S --pd "__RTX SETA 1" --pd "__EVAL SETA 1" -g --16 --apcs=interwork --pd "__MICROLIB SETA 1"-I C:\Keil_v5\ARM\RV31\INC-I C:\Keil_v5\ARM\CMSIS\Include-I C:\Keil_v5\ARM\Inc\ST\91x--pd "__UVISION_VERSION SETA 514"-o .\obj\str91x.o --depend .\obj\str91x.d)

@@ -236,7 +236,7 @@ void write_collision_LCD() {
 	LCD_puts("Impact:");
 	print_uns_char(force_sensor);
 	write_led();
-	// delay for 1 sec and release
+	// delay for 2 sec and release
 	delay(2000);
 	os_mut_release(&LCD_Mutex);
 }
@@ -254,18 +254,22 @@ int PWM_StMch_B0(int state)
 			if (counter < low) {
 				counter++;
 			} else {
-				B0 = 1;
 				counter = 0;
-				state = B0_ON;
+				if (high!=0) {
+					B0 = 1;
+					state = B0_ON;
+				}
 			}
 			break;
 		case B0_ON:
 			if (counter <high) {
 					counter++;
 			} else {
-				B0 = 0;
 				counter = 0;
-				state = B0_OFF;
+				if (low!=0) {
+					B0 = 0;
+					state = B0_OFF;
+				}
 			}
 			break;
 		default:
